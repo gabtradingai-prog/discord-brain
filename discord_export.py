@@ -56,9 +56,9 @@ def load_token():
                 return value.strip().strip('"').strip("'")
 
     sys.exit(
-        "Token manquant.\n"
-        f"Cree le fichier {env_file} avec la ligne :\n"
-        "DISCORD_BOT_TOKEN=ton_token_ici"
+        "Missing token.\n"
+        f"Create {env_file} with the line:\n"
+        "DISCORD_BOT_TOKEN=your_token_here"
     )
 
 
@@ -160,7 +160,7 @@ def download_attachment(url, dest):
 def render_message(msg, images_dir=None, rel_prefix=""):
     """One Discord message -> one readable Markdown block."""
     author = msg.get("author", {}).get("global_name") \
-        or msg.get("author", {}).get("username", "inconnu")
+        or msg.get("author", {}).get("username", "unknown")
     stamp = datetime.fromisoformat(msg["timestamp"]).strftime("%Y-%m-%d %H:%M")
 
     lines = [f"### {stamp} — {author}", ""]
@@ -179,7 +179,7 @@ def render_message(msg, images_dir=None, rel_prefix=""):
         lines.append("")
 
     for att in msg.get("attachments", []):
-        filename = att.get("filename") or "fichier"
+        filename = att.get("filename") or "file"
         url = att.get("url")
         target = None
 
@@ -199,7 +199,7 @@ def render_message(msg, images_dir=None, rel_prefix=""):
                 FAILED.append(f"{msg['id']} {filename}")
 
         # Local path when we have it, otherwise the signed URL (which expires).
-        lines.append(f"[fichier: {filename}]({target or url})")
+        lines.append(f"[file: {filename}]({target or url})")
         lines.append("")
 
     return "\n".join(lines)
@@ -214,7 +214,7 @@ def safe_name(name):
 def cmd_list(token):
     guilds = api_get("/users/@me/guilds", token) or []
     if not guilds:
-        print("Aucun serveur. Le bot n'a ete invite nulle part.")
+        print("No servers. The bot has not been invited anywhere.")
         return
 
     for guild in guilds:
@@ -256,17 +256,17 @@ def cmd_export(token, guild_id, since=None):
         messages = fetch_all_messages(chan["id"], token, since)
 
         if not messages:
-            print("vide ou inaccessible")
+            print("empty or inaccessible")
             continue
 
         cat = categories.get(chan.get("parent_id"), "")
         header = [
             f"# #{chan['name']}",
             "",
-            f"- Serveur : {guild['name']}",
-            f"- Categorie : {cat or '(aucune)'}",
-            f"- Messages : {len(messages)}",
-            f"- Exporte : {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            f"- Server: {guild['name']}",
+            f"- Category: {cat or '(none)'}",
+            f"- Messages: {len(messages)}",
+            f"- Exported: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
             "",
             "---",
             "",
@@ -289,12 +289,12 @@ def cmd_export(token, guild_id, since=None):
         total += len(messages)
         print(f"{len(messages)} messages")
 
-    print(f"\nFini. {total} messages dans {out_dir}")
+    print(f"\nDone. {total} messages in {out_dir}")
     if DOWNLOADED or FAILED:
         mb = sum(f.stat().st_size for f in (out_dir / IMAGES_SUBDIR).rglob("*")
                  if f.is_file()) / (1024 * 1024)
-        print(f"Pieces jointes : {len(DOWNLOADED)} locales · {len(FAILED)} "
-              f"non recuperees (lien expire) · {mb:.0f} Mo au total")
+        print(f"Attachments: {len(DOWNLOADED)} local · {len(FAILED)} "
+              f"not retrieved (expired link) · {mb:.0f} MB total")
 
 
 def main():
@@ -309,7 +309,7 @@ def main():
         cmd_list(token)
     elif command == "export":
         if len(sys.argv) < 3:
-            sys.exit("Usage : python discord_export.py export <guild_id>")
+            sys.exit("Usage: python discord_export.py export <guild_id>")
         since = None
         if "--since" in sys.argv:
             raw = sys.argv[sys.argv.index("--since") + 1]
